@@ -1,0 +1,185 @@
+$ Output_Name = "WidthSim2.vtu"
+
+$ airBody = 1
+$ coreBody = 3
+$ concentratorBody = 2
+
+
+
+
+
+
+
+
+Header
+	CHECK KEYWORDS Warn
+	Mesh DB "Output" "."
+	Include Path ""
+	Results Directory ""
+End
+
+Simulation
+	Max Output Level = 5
+	Coordinate System = Cartesian
+	Coordinate Mapping(3) = 1 2 3
+	Simulation Type = Steady state
+	Steady State Max Iterations = 1
+	Output Intervals = 1
+	Timestepping Method = BDF
+	BDF Order = 1
+	Coordinate Scaling = .001
+	Angular Frequency = 1.0e1
+	Solver Input File = case.sif
+	Post File = $Output_Name$
+End
+
+Constants
+	Gravity(4) = 0 -1 0 9.82
+	Stefan Boltzmann = 5.67e-08
+	Permittivity of Vacuum = 8.8542e-12
+	Boltzmann Constant = 1.3807e-23
+	Unit Charge = 1.602e-19
+End
+
+Equation 1
+              Name = "Equation 1"
+              Active Solvers(2) = 1 2
+End
+
+Body 1
+             Name = "airBody"
+            Target Bodies(1) = $airBody$
+            Equation = 1
+            Material = 2
+End
+
+Body 2
+             Name = "coreBody"
+            Target Bodies(1) = $coreBody$
+            Equation = 1
+            Material = 1
+            Body Force = 1
+End
+
+Body 3
+             Name = "concentratorBody"
+            Target Bodies(1) = $concentratorBody$
+            Equation = 1
+            Material = 3
+End
+
+
+
+
+
+Solver 1
+  Equation = MGDynamics
+  Procedure = "MagnetoDynamics" "WhitneyAVSolver"
+  Variable =  P
+  Current Density BC = Logical True
+  Fix Input Current density = Logical True
+  Steady State Convergence Tolerance = 1.0e-7
+
+  Linear System Solver = Iterative
+  Linear System Iterative Method = BiCGStabl
+  BiCGstabl polynomial degree = 4
+  Linear System Max Iterations = 1000
+  Linear System Convergence Tolerance = 1.0e-10
+
+  Linear System Preconditioning = none
+  Linear System ILUT Tolerance = 1.0e-5
+  Linear System Abort Not Converged = True
+  Linear System Residual Output = 10
+  Linear System Precondition Recompute = 1
+  Nonlinear System Consistent Norm = Logical True
+  Nonlinear System Convergence Tolerance = 1.0e-7
+  Nonlinear System Max Iterations = 20
+  Nonlinear System Newton After Iterations = 3
+  Nonlinear System Newton After Tolerance = 1.0e-3
+  Nonlinear System Relaxation Factor = 1
+End
+
+
+Solver 2
+  Equation = MGDynamicsCalc
+  Procedure = "MagnetoDynamics" "MagnetoDynamicsCalcFields"
+  Potential Variable = String "P"
+  Steady State Convergence Tolerance = 1.0e-7
+  Nonlinear System Convergence Tolerance = 1.0e-7
+  Nonlinear System Max Iterations = 20
+  Nonlinear System Newton After Iterations = 3
+  Nonlinear System Newton After Tolerance = 1.0e-3
+  Nonlinear System Relaxation Factor = 1
+  Linear System Solver = Iterative
+  Linear System Iterative Method = BiCGStabl
+  Linear System Max Iterations = 1000
+  Linear System Convergence Tolerance = 1.0e-10
+  BiCGstabl polynomial degree = 4
+  Linear System Preconditioning = none
+  Linear System ILUT Tolerance = 1.0e-5
+  Linear System Abort Not Converged = True
+  Linear System Residual Output = 10
+  Linear System Precondition Recompute = 1
+  Calculate Current Density = True
+  Calculate Magnetic Field Strength = True
+  Nonlinear System Consistent Norm = Logical True
+
+End
+
+
+Equation 1
+  Name = "MagneticSolver"
+  Active Solvers(2) = 1 2
+End
+
+Material 1
+  Name = "Copper (generic)"
+  Heat Conductivity = 401.0
+  Heat Capacity = 385.0
+  Heat expansion Coefficient = 16.5e-6
+  Poisson ratio = 0.34
+  Youngs modulus = 115.0e9
+  Sound speed = 3810.0
+  Mesh Poisson ratio = 0.34
+  Electric Conductivity = 59.59e6
+  Electric Conductivity = 59.59e6
+  Density = 8960.0
+  Relative Permeability = 0.999994
+  Relative Permeability = 0.999994
+End
+
+Material 2
+  Name = "Air (room temperature)"
+  Relative Permittivity = 1.00059
+  Density = 1.205
+  Sound speed = 343.0
+  Relative Permeability = 1.00000037
+  Relative Permittivity = 1.00059
+  Relative Permeability = 1.00000037
+  Heat Conductivity = 0.0257
+  Viscosity = 1.983e-5
+  Heat expansion Coefficient = 3.43e-3
+  Heat Capacity = 1005.0
+End
+
+Material 3
+   Name = "iron"
+  Electric Conductivity = Real 1000.0
+  Relative Permeability = Real 500
+  Magnetization 3 = Real 0
+End
+
+Body Force 1
+  Name = "BodyForce 1"
+  Fix Input Current density = Logical  True
+  Current Density 3 = Real 0.0
+  Current Density 2 = Real 0.0
+  Current Density 1 = Real 50929.0
+End
+
+Boundary Condition 1
+Target Boundaries(5) = 2 3 14 15 16
+  Name = "far"
+  P {e} = real 0
+End
+

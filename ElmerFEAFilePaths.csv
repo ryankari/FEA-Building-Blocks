@@ -1,0 +1,4 @@
+elmerSolverPath,C:\Program Files\Elmer 9.0-Release\bin\ElmerSolver.exe
+elmerGridPath,C:\Program Files\Elmer 9.0-Release\bin\ElmerGrid.exe
+elmerSolverMPIPath,C:\Program Files\Elmer 9.0-Release\bin\ElmerSolver_mpi.exe
+mpiExecPath,C:\Program Files\Microsoft MPI\Bin\mpiexec.exe
