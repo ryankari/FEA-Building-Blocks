@@ -15,10 +15,23 @@ ColumnNames=['Pos X','Pos Y','Pos Z','Field X','Field Y','Field Z']
 
 class classVTUImport:
     
+    
+    def ReadVTUArray(self,Filename):
+
+            if type(Filename) is not list:
+                Filename = [Filename]
+            
+            meshArray = []
+            for index,File in enumerate(Filename):
+                meshArray.append(pv.read(File))
+            
+            return(meshArray)
+    
+    
     # =============================================================================
     #     # Read data from VTU file returning position and field data in pandas data frame
     # =============================================================================
-        def ReadVTUFile(self,Filename):
+    def ReadVTUtoPandas(self,Filename):
     
             print('In ReadVTUFile \n{}\n'.format(Filename))
             self.PDData =  pd.DataFrame({})
@@ -34,7 +47,7 @@ class classVTUImport:
                 #Read in field data
                 FieldData = mesh.point_arrays['magnetic field strength']
     
-                df1 = pd.DataFrame(data=np.append(PointData,FieldData,axis=1), columns=self.ColumnNames)
+                df1 = pd.DataFrame(data=np.append(PointData,FieldData,axis=1), columns=ColumnNames)
                 for item in df1.items():
                     df1[item[0]] =  df1[item[0]].fillna(value = df1[item[0]].iloc[0])
     

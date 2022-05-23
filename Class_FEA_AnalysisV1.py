@@ -62,7 +62,7 @@ class ClassFEAAnalysis:
         var1 = np.array(var1)
         var2 = np.array(var2)
         # Store each mesh into a dictionary
-        meshDict = VTU.readVTUFile(vtufullfiles)
+        meshDict = VTU.ReadVTUArray(vtufullfiles)
         
         # Set endpoints to sample data over a line
         a = [-.050, .02, 0]
@@ -77,7 +77,7 @@ class ClassFEAAnalysis:
         # Sample over the line and store results in data frame
         
         for index,mesh in enumerate(meshDict):
-            output = meshDict[mesh].sample_over_line(a,b,resolution=100)
+            output = mesh.sample_over_line(a,b,resolution=100)
             df = pd.DataFrame({'Pos':output.points[:,0],'FieldZ':output.point_arrays['magnetic field strength'][:,2],\
                                'Width':float(var1[index]),'Radius':float(var2[index]),'FileOrder':index  })
             dfArray = pd.concat((dfArray,df))
