@@ -2,7 +2,11 @@
 """
 Created on Thu May 19 21:06:57 2022
 
-@author: RKari
+File: Class_FEA_AnalysisV1.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 import numpy as np
 import pandas as pd
@@ -68,7 +72,7 @@ class ClassFEAAnalysis:
         a = [-.050, .02, 0]
         b = [ .050, .02, 0]
         
-        if len(meshDict) == len(vtufiles):
+        if len(meshDict) != len(vtufiles):
             print('Warning - same file name likely present in multiple rows')
             
         cE = curveEstimation()

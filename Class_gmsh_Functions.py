@@ -2,7 +2,11 @@
 """
 Created on Mon Jul 12 15:06:39 2021
 
-@author: RKari
+File: Class_gmsh_Functions.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 
 
@@ -15,15 +19,13 @@ import os
 class gmshFunctions:
     
 # =============================================================================
-#     Initialize by reading in the ELMER program paths
-#     This will be used to find ElmerGrid
 # =============================================================================
     def __init__(self):
         
         print("gmshFunctions __init__")
 
 # =============================================================================
-#   Extract Parameters from imported XLS           
+#   Extract Parameters from imported           
 # =============================================================================
     def extractColumn(self,dfActive,columnName,columnType = 'float'):
         
@@ -359,30 +361,7 @@ class gmshFunctions:
 # =============================================================================
 #         
 # =============================================================================
-if __name__ == "__main__":
-    
-    from Class_read_parameters import ClassReadParameters
-    readInstance = ClassReadParameters()
-    
-    gmshFUNC = gmshFunctions()
-    cwd = os.getcwd()
-    dfAll = readInstance.read_parameters_from_xls(os.path.join(cwd,'parameters'))          
 
-    
-    dfActive =dfAll.iloc[0]
-
-    
-    body_id = {'coreBody':{'volume':3},'concentratorBody':{'volume':2},\
-               'coilBody':{'volume':np.nan},'airBody':{'volume':1,'boundary':np.nan}}
-        
-    # Set working directory path relative to Python. Can be specific study path.   
-    if '__file__' in globals():   
-        cwd = os.path.dirname(__file__)
-    else:
-        cwd = os.getcwd()
-        
-    gmshFUNC.createMesh(dfActive,body_id,cwd,view_geo_only=True,view_mesh_only=False)
-    
 
     
 

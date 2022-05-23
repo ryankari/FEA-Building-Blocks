@@ -2,7 +2,11 @@
 """
 Created on Wed May 11 20:15:37 2022
 
-@author: RKari
+File: Class_Elmer_Functions.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 import os
 from pathlib import Path

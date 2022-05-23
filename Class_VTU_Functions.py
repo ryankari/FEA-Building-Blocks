@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Fri May 13 06:07:16 2022
+This is a class associated with VTU import functions. Some analysis can be 
+done by using pyVista (and using data extraction such as sample_over_line),
+however importing data directly to pandas can be quite useful. 
 
-@author: RKari
+File: Class_VTU_Functions.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
 """
 
 import numpy as np
@@ -15,7 +21,9 @@ ColumnNames=['Pos X','Pos Y','Pos Z','Field X','Field Y','Field Z']
 
 class classVTUImport:
     
-    
+    # =============================================================================
+    # Simply read the mesh into a dictionary    
+    # =============================================================================
     def ReadVTUArray(self,Filename):
 
             if type(Filename) is not list:

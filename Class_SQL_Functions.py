@@ -2,7 +2,11 @@
 """
 Created on Fri Jun  4 09:36:09 2021
 
-@author: RKari
+File:Class_SQL_Functions.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 
 import sqlite3 as sql

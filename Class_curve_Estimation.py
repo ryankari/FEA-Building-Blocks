@@ -2,7 +2,11 @@
 """
 Created on Wed May 18 09:33:03 2022
 
-@author: RKari
+File: Class_curve_Estimation.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 
 

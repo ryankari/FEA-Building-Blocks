@@ -2,7 +2,19 @@
 """
 Created on Mon May 16 15:09:22 2022
 
-@author: RKari
+This serves as the main executable to demonstrate a possible program flow
+that ranges from creating a directory structure, loading in file paths,
+loading in the parameters, creating a mesh in GMSH, configuring the mesh for FEA,
+modifying an ELMER *.sif simulation file, storing the data, and then appending
+the parameters used with a unique file_id (for use as a foreign key) into a 
+SQLite database. A sample analysis connecting the parameters used to generate the
+mesh to file FEA results are presented, as they might be used for optimization.
+
+These pieces are well suited for building a GUI, Jupyter, 
+File: ExecuteFEA.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
 """
 
 # Load External packages

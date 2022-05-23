@@ -2,7 +2,11 @@
 """
 Created on Wed Jul 28 08:23:22 2021
 
-@author: RKari
+File: Class_read_parameters.py
+@author: Ryan Kari <ryan.j.kari@gmail.com>
+Last Modified Date: May 23, 2022
+Last Modified by: Ryan Kari
+
 """
 
     # =============================================================================
