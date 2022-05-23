@@ -7,3 +7,5 @@ It's for this reason parametric modeling makes commercial packages so powerful. 
 
 This project puts together this full suite with Open Source tools. This presents currents and fields, but can be modified for stress and strain, heat transfer, fluid flow etc. I often automate the full creation of the full *.sif file (rather than just appending the output file name and body information), however always begin by ‘hacking’ it as a text file as I work through the details of the FEA solution. This sif file can easily be changed to whatever physics need to be solved. To help with this debugging stage, a file (direct_cmd.txt) is created showing the command line that can be executed directly within the command prompt. 
 In regards to requirements, I have Elmer 9.0 installed and use MPI. I have not tested other releases lately. 
+
+![image](https://user-images.githubusercontent.com/73919562/169894493-d8f4c04e-4328-447f-92d2-e75fbe337ba1.png)
