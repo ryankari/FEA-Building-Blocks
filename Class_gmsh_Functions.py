@@ -369,3 +369,38 @@ class gmshFunctions:
 
     
     
+
+# =============================================================================
+#         
+# =============================================================================
+if __name__ == "__main__":
+    
+    from Class_read_parameters import ClassReadParameters
+    readInstance = ClassReadParameters()
+    
+    gmshFUNC = gmshFunctions()
+    cwd = os.getcwd()
+    dfAll = readInstance.read_parameters_from_xls(os.path.join(cwd,'parameters'))          
+
+    
+    dfActive =dfAll.iloc[0]
+
+    
+    body_id = {'coreBody':{'volume':3},'concentratorBody':{'volume':2},\
+               'coilBody':{'volume':np.nan},'airBody':{'volume':1,'boundary':np.nan}}
+        
+    # Set working directory path relative to Python. Can be specific study path.   
+    if '__file__' in globals():   
+        cwd = os.path.dirname(__file__)
+    else:
+        cwd = os.getcwd()
+        
+    gmshFUNC.createMesh(dfActive,body_id,cwd,view_geo_only=True,view_mesh_only=False)
+    
+
+    
+
+    
+
+    
+    

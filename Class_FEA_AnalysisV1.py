@@ -15,11 +15,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from matplotlib import cm  
         
-from Class_VTU_Functions import classVTUImport
-VTU = classVTUImport()
 
-from Class_curve_Estimation import curveEstimation
-CE = curveEstimation()
 
 class ClassFEAAnalysis:
     
@@ -42,6 +38,11 @@ class ClassFEAAnalysis:
           None.
 
           """  
+        from Class_VTU_Functions import classVTUImport
+        VTU = classVTUImport()
+
+        from Class_curve_Estimation import curveEstimation
+        CE = curveEstimation()
         
         df_all = pd.read_excel(parameters_dict['path'])  
         
@@ -50,7 +51,7 @@ class ClassFEAAnalysis:
         vtufiles = []
         var1 = []
         var2 = []
-        
+        var3 = []
 
         vtuPath = os.path.join(cwd,'output')
         for item in df_all.iterrows():
@@ -62,6 +63,7 @@ class ClassFEAAnalysis:
             # Extract values associated with each file for analysis
             var1.append(float(item[1]['Concen_Z_[gmsh]']))
             var2.append(float(item[1]['Conce2_diam_[gmsh]']))
+            var3.append(item[1]['Concen_X_[gmsh]'])
         
         var1 = np.array(var1)
         var2 = np.array(var2)
@@ -121,6 +123,12 @@ class ClassFEAAnalysis:
         
         # Use a fit function of theta0 + theta1* width + theta2*radius + theta3*radius**2
         # Solve using least squares
+        if npArray.shape[0] < npArray.shape[1]:
+            print('Not enough parameters for 4th order analysis')
+            for item in dfArray.groupby(by='FileOrder'):
+                print('\nData collected in File {} = \n'.format(item[0]),item[1][['Width','Radius']].mean())
+            return(0)
+        
         theta,pcovA = curve_fit(self.sur_function,(npArray[:,1],npArray[:,2]),npArray[:,0])
         
         # Configure a grid over the range of values we solved for
@@ -143,15 +151,33 @@ class ClassFEAAnalysis:
         plt.subplot(1,2,1)
         plt.contourf(widthArray,radiusArray,z,levels=50,cmap=cm.Greys)
         plt.colorbar()
-        plt.xlabel('Width [mm]')
-        plt.ylabel('Radius [mm]')
-        plt.title('Magnetic field versus \nwidth and radius')
+        plt.xlabel('Parameter A')
+        plt.ylabel('Parameter B')
+        plt.title('Output versus Parameter A and B')
+        #plt.xlabel('Width [mm]')
+        #plt.ylabel('Radius [mm]')
+        
+        #plt.title('Magnetic field versus \nwidth and radius')
         
         plt.subplot(1,2,2)
         plt.contourf(widthArray,radiusArray,z/mm,levels=50,cmap=cm.Blues)
         plt.title('Magnetic field per unit mass \nversus width and radius')
         plt.colorbar()
         
+        plt.figure(3)
+        plt.subplot(1,2,1)
+        plt.plot(xx.flatten(),z[:,1].flatten())
+        plt.plot(yy.flatten(),z[:,1].flatten())
+        plt.xlabel('Parameter value [mm]')
+        plt.ylabel('Output Value')
+        plt.legend(['Parameter A','Parameter B'])
+        plt.subplot(1,2,2)
+        plt.contourf(widthArray,radiusArray,z/mm,levels=50,cmap=cm.Blues)
+        plt.title('Output per unit mass')
+        plt.xlabel('Width [mm]')
+        plt.ylabel('Radius [mm]')
+        plt.colorbar()
+        #print(xx.shape,mm.shape)
 # =============================================================================
 #         
 # =============================================================================
@@ -183,6 +209,13 @@ class ClassFEAAnalysis:
 #     
 # =============================================================================
 if __name__ == "__main__":
+    import sys
+    program_path = os.path.dirname(__file__)
+    print(program_path)
+    if program_path not in sys.path:
+        sys.path.insert(0,program_path)
+    
+    
     Analysis = ClassFEAAnalysis()
     
     parameters_subdir = 'parameters'
