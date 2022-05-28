@@ -9,3 +9,19 @@ This project puts together this full suite with Open Source tools. This presents
 In regards to requirements, I have Elmer 9.0 installed and use MPI. I have not tested other releases lately. 
 
 ![image](https://user-images.githubusercontent.com/73919562/169894493-d8f4c04e-4328-447f-92d2-e75fbe337ba1.png)
+
+The figure below is from the simple example of current conducted within a wire shown in Building Block Study 2.
+![image](https://user-images.githubusercontent.com/73919562/170806725-7c2d7cc3-cfb2-404b-ad76-78aefabfaa84.png)
+
+It can be seen the current from the calculation is in reasonable agreement with the measured value in A/m.
+
+Inspect = 0.003
+
+Uo = 4 * np.pi * 1e-07
+
+B =  Uo * Current/(2 * np.pi * Inspect)
+
+print('Field in Tesla = {} Oe = {} A/m = {}'.format(B,B*10000,B*10000*80))
+
+![image](https://user-images.githubusercontent.com/73919562/170807035-1596630d-1dd1-4c9d-b9dd-21359e1127a5.png)
+
