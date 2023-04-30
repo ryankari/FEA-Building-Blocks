@@ -4,7 +4,7 @@ Created on Mon Jul 12 15:06:39 2021
 
 File: Class_gmsh_Functions.py
 @author: Ryan Kari <ryan.j.kari@gmail.com>
-Last Modified Date: May 23, 2022
+Last Modified Date: April 29, 2023
 Last Modified by: Ryan Kari
 
 """
@@ -96,7 +96,7 @@ class gmshFunctions:
         
         tag = int(body_id['coreBody']['volume'])
         print("Core enabled\n\n\n")
-        if self.extractColumn(dfActive,'Enable_Core_[gmsh]','boolean') == True:
+        if self.extractColumn(dfActive,columnName = 'Enable_Core_[gmsh]',columnType = 'boolean') == True:
             OD_tag = 42
             ID_tag = 44
             dims = 3
@@ -135,7 +135,7 @@ class gmshFunctions:
     def create_concentrator_study1(self,dfActive,body_id):
         print("create concentrator study1\n")
         tag = int(body_id['concentratorBody']['volume'])
-        print(dfActive['Enable_Concen_[gmsh]'],type(dfActive['Enable_Concen_[gmsh]']))
+        #print(dfActive['Enable_Concen_[gmsh]'],type(dfActive['Enable_Concen_[gmsh]']))
 
                 
         if  self.extractColumn(dfActive,'Enable_Concen_[gmsh]'):
@@ -161,7 +161,7 @@ class gmshFunctions:
                                       C_X,C_Y,C_Z, 30)
                     
                 gmsh.model.occ.addCylinder(C_Xpos,0, 0, C_X, 0, 0, 4,tag=31)
-                radius = float(dfActive['Conce2_diam_[gmsh]'])
+                radius = self.extractColumn(dfActive,'Conce2_diam_[gmsh]','float')
                 gmsh.model.occ.addCylinder(C_Xpos,20, 0,C_X, 0, 0, radius,tag=32)
                 gmsh.model.occ.addSphere(C_Xpos, 20, 0, 9,tag=33)
                 
