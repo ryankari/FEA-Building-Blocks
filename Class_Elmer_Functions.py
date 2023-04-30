@@ -4,7 +4,7 @@ Created on Wed May 11 20:15:37 2022
 
 File: Class_Elmer_Functions.py
 @author: Ryan Kari <ryan.j.kari@gmail.com>
-Last Modified Date: May 23, 2022
+Last Modified Date: April 29, 2023
 Last Modified by: Ryan Kari
 
 """
@@ -280,6 +280,7 @@ class ClassElmer:
         
         #Read in the file appending into variable_info
         str_subset = 'ELMER SOLVER FINISHED AT:'
+        runtimeline = '0'
         for item in f1:
             line_in_var = item
             if (line_in_var.find(str_subset) >= 0):

@@ -1,4 +1,4 @@
-$ Output_Name = "RadiusSim7.vtu"
+$ Output_Name = "RadiusSim2.vtu"
 
 $ airBody = 1
 $ coreBody = 3
