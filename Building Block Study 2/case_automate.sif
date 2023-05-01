@@ -3,8 +3,6 @@ $ Output_Name = "WidthSim2.vtu"
 $ airBody = 1
 $ coreBody = 2
 
-! Define body ids
-
 
 Header
 	CHECK KEYWORDS Warn
@@ -166,4 +164,3 @@ Target Boundaries(5) = 2 3 4 5 6
   Name = "far"
   P {e} = real 0
 End
-

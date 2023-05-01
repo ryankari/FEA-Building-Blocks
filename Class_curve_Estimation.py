@@ -29,7 +29,7 @@ class curveEstimation():
 
 
 
-    def returnPts(self,df,pts,fit = '1st order',inputRange = [-0.01,0.01],channelNames = ['Pos','FieldZ']):
+    def returnPts(self,df,pts,fit = '1st order',inputRange = [-0.01,0.01],channelNames = ['Pos','Field Z']):
         """
         
         Parameters
@@ -54,10 +54,11 @@ class curveEstimation():
         from scipy.optimize import curve_fit
     
 
-        selectedData = df[df[channelNames[0]].between(inputRange[0], inputRange[1], inclusive=False)]
+        selectedData = df[df[channelNames[0]].between(inputRange[0], inputRange[1], inclusive='both')]
         xdata = selectedData[channelNames[0]].values
         ydata = selectedData[channelNames[1]].values
-        
+
+
         if fit == '1st order':
             popt, pcov = curve_fit(self.func1, xdata, ydata)
             outputValue = self.func1(pts, *popt)
@@ -70,8 +71,7 @@ class curveEstimation():
         if fit == '4th order':
             popt, pcov = curve_fit(self.func4, xdata, ydata)
             outputValue = self.func4(pts, *popt)
-        
-        print(outputValue)
+
         return(outputValue)
     
     

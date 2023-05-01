@@ -14,39 +14,24 @@ import os
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 from matplotlib import cm  
+import sys
+
+from Class_VTU_Functions import classVTUImport
+VTU = classVTUImport()
+
+from Class_curve_Estimation import curveEstimation
+CE = curveEstimation()
         
-
-
 class ClassFEAAnalysis:
-    
 
+    def __init__(self):
+          print("ClassFEAAnalysis __init__")   
+          
 # =============================================================================
 #         
 # =============================================================================
-      def process_vtu_data(self,cwd,parameters_dict):
-        """
-          
-          Parameters
-          ----------
-          parameter_file_name : string, optional
-              DESCRIPTION. The name of the spreadsheet containing the parameter values
-          filepath : string, optional
-              DESCRIPTION. The string of the filepath containing the VTU files
-
-          Returns
-          -------
-          None.
-
-          """  
-        from Class_VTU_Functions import classVTUImport
-        VTU = classVTUImport()
-
-        from Class_curve_Estimation import curveEstimation
-        CE = curveEstimation()
-        
-        df_all = pd.read_excel(parameters_dict['path'])  
-        
-        
+    def import_vtu_data(self,parameters_dict,importedParams):
+        cwd=os.getcwd()
         vtufullfiles = []
         vtufiles = []
         var1 = []
@@ -54,7 +39,7 @@ class ClassFEAAnalysis:
         var3 = []
 
         vtuPath = os.path.join(cwd,'output')
-        for item in df_all.iterrows():
+        for item in importedParams.iterrows():
             # Extract each pvtu file associated with the test in the spreadsheet
             # Alternatively, can extract from SQL
             vtufiles.append(item[1]['Filename'] + '_t0001.pvtu')
@@ -70,64 +55,83 @@ class ClassFEAAnalysis:
         # Store each mesh into a dictionary
         meshDict = VTU.ReadVTUArray(vtufullfiles)
         
-        # Set endpoints to sample data over a line
-        a = [-.050, .02, 0]
-        b = [ .050, .02, 0]
-        
         if len(meshDict) != len(vtufiles):
             print('Warning - same file name likely present in multiple rows')
             
-        cE = curveEstimation()
-        outputValues = []
-        dfArray = pd.DataFrame()
+        return(meshDict)
+
+# =============================================================================
+#         
+# =============================================================================
+
+    def extractDatafromLine(self,meshDict,a= [-.050, .02, 0],b=[ .050, .02, 0]):
+        
+
+        lineOutput = pd.DataFrame({})
+
         # Sample over the line and store results in data frame
         
         for index,mesh in enumerate(meshDict):
             output = mesh.sample_over_line(a,b,resolution=100)
-            df = pd.DataFrame({'Pos':output.points[:,0],'FieldZ':output.point_arrays['magnetic field strength'][:,2],\
-                               'Width':float(var1[index]),'Radius':float(var2[index]),'FileOrder':index  })
-            dfArray = pd.concat((dfArray,df))
-            #Extract narrow range of results and fit a curve to extract point at specific location
-            
-            inspection_pt = 0
-            
-            output = cE.returnPts(df, inspection_pt,fit ='2nd order',inputRange=[-0.005,0.005]) 
-            outputValues.append(output)
-        outputValues = np.array(outputValues)    
-        
-        
-        ####-------------------------------------------------------------------
-        # Create first plot
-        ####-------------------------------------------------------------------
-        for item in dfArray.groupby(by='FileOrder'):
-            plt.plot(item[1]['Pos'],item[1]['FieldZ'])     
-            
-        plt.legend(var1)
-        
+            dfOutput = pd.DataFrame({'Pt X':output.points[:,0],'Pt Y':output.points[:,1],\
+                                     'Pt Z':output.points[:,2],\
+                                     'Field X':output.point_data['magnetic field strength'][:,0],\
+                                     'Field Y':output.point_data['magnetic field strength'][:,1],\
+                                     'Field Z':output.point_data['magnetic field strength'][:,2]})
+                
+            dfOutput['File'] = index
+            lineOutput = pd.concat([lineOutput,dfOutput])
+  
+        return(lineOutput)
     
+# =============================================================================
+#         
+# =============================================================================
+    
+    def extractSpecificPts(self,lineOutput,Pts = [0],Field_Dir= 'Field Z'):
         
+        cE = curveEstimation()
+        ptOutput = pd.DataFrame({})
+        
+        for item in lineOutput.groupby(by='File'):  
+            
+            for pt in Pts:
+
+                output = cE.returnPts(item[1], pt,fit ='2nd order',inputRange=[-0.005,0.005],\
+                                      channelNames = ['Pt X',Field_Dir]) 
+                
+                outdf = pd.DataFrame({'Pos':[pt],Field_Dir:[output],'File':item[0]})
+                ptOutput = pd.concat([outdf,ptOutput])
+                
+        return(ptOutput.reset_index(drop=True))
+    
+# =============================================================================
+#         
+# =============================================================================   
+    def analyzeData(self,importedParams,ptOutput):
         # Make this interesting. Compute the mass for each permutation
-        npArray = np.array((outputValues,var1,var2)).transpose()
+
         massArray = []
         density_steel = 7.8 /1000 #g/mm**3
-        for item in df_all.iterrows():
-            
+        for item in importedParams.iterrows():
+             
             mass_cube = density_steel*item[1]['Concen_X_[gmsh]']*item[1]['Concen_Y_[gmsh]']*item[1]['Concen_Z_[gmsh]'] 
             mass_cylinder = float(item[1]['Conce2_diam_[gmsh]'])**2*np.pi/4
             mass = mass_cube - mass_cylinder
-            massArray.append(mass)
-        massArray = np.array(massArray)
-        
-        # Assemble matrix of [magnetic field, width, diameter, mass]
-        npArray = np.array((outputValues,var1,var2,massArray)).transpose()    
+            massArray.append(mass)       
+
+         # Assemble matrix of [magnetic field, width, diameter, mass]
+        npArray = np.array((ptOutput['Field Z'],importedParams['Concen_Z_[gmsh]'],importedParams['Conce2_diam_[gmsh]'],massArray)).transpose()    
+  
         
         # Use a fit function of theta0 + theta1* width + theta2*radius + theta3*radius**2
         # Solve using least squares
         if npArray.shape[0] < npArray.shape[1]:
             print('Not enough parameters for 4th order analysis')
-            for item in dfArray.groupby(by='FileOrder'):
-                print('\nData collected in File {} = \n'.format(item[0]),item[1][['Width','Radius']].mean())
-            return(0)
+            
+         #   for item in lineOutput.groupby(by='File'):
+         #       print('\nData collected in File {} = \n'.format(item[0]),item[1][['Width','Radius']].mean())
+            return(0,0)
         
         theta,pcovA = curve_fit(self.sur_function,(npArray[:,1],npArray[:,2]),npArray[:,0])
         
@@ -143,45 +147,66 @@ class ClassFEAAnalysis:
         # Compute our fit function at each point
         z = self.sur_function((xx,yy),*theta)
         
+        contourData = np.array((xx,yy,z,mm),dtype=object)
+        return(npArray,contourData)
         
-        ####-------------------------------------------------------------------
-        # Create second plot
-        ####-------------------------------------------------------------------
-        plt.figure(2)
-        plt.subplot(1,2,1)
-        plt.contourf(widthArray,radiusArray,z,levels=50,cmap=cm.Greys)
-        plt.colorbar()
-        plt.xlabel('Parameter A')
-        plt.ylabel('Parameter B')
-        plt.title('Output versus Parameter A and B')
-        #plt.xlabel('Width [mm]')
-        #plt.ylabel('Radius [mm]')
-        
-        #plt.title('Magnetic field versus \nwidth and radius')
-        
-        plt.subplot(1,2,2)
-        plt.contourf(widthArray,radiusArray,z/mm,levels=50,cmap=cm.Blues)
-        plt.title('Magnetic field per unit mass \nversus width and radius')
-        plt.colorbar()
-        
-        plt.figure(3)
-        plt.subplot(1,2,1)
-        plt.plot(xx.flatten(),z[:,1].flatten())
-        plt.plot(yy.flatten(),z[:,1].flatten())
-        plt.xlabel('Parameter value [mm]')
-        plt.ylabel('Output Value')
-        plt.legend(['Parameter A','Parameter B'])
-        plt.subplot(1,2,2)
-        plt.contourf(widthArray,radiusArray,z/mm,levels=50,cmap=cm.Blues)
-        plt.title('Output per unit mass')
-        plt.xlabel('Width [mm]')
-        plt.ylabel('Radius [mm]')
-        plt.colorbar()
-        #print(xx.shape,mm.shape)
+     
 # =============================================================================
 #         
 # =============================================================================
-      def sur_function(self,VAR,a,b,c,d):
+    def createSamplePlots(self,lineOutput,importedParams,contourData):
+
+    
+        ####-------------------------------------------------------------------
+        # Create first plot
+        ####-------------------------------------------------------------------
+        for item in lineOutput.groupby(by='File'):
+            plt.plot(item[1]['Pt X'],item[1]['Field Z'])     
+        plt.legend(importedParams['Concen_Z_[gmsh]'])
+
+        if len(importedParams)<5:
+            print('Not enough data to compute remaining figures')
+        else:
+            ####-------------------------------------------------------------------
+            # Create second plot
+            ####-------------------------------------------------------------------
+            plt.figure(2)
+            plt.subplot(1,2,1)
+            plt.contourf(contourData[0][0],contourData[1].T[0],contourData[2],levels=50,cmap=cm.Greys)
+            plt.colorbar()
+            plt.xlabel('Width [mm]')
+            plt.ylabel('Radius [mm]')
+            
+            plt.title('Magnetic field versus \nwidth and radius')
+            
+            plt.subplot(1,2,2)
+            plt.contourf(contourData[0][0],contourData[1].T[0],contourData[2]/contourData[3],levels=50,cmap=cm.Blues)
+            plt.title('Magnetic field per unit mass \nversus width and radius')
+            plt.colorbar()
+     
+            ####-------------------------------------------------------------------
+            # Create third plot
+            ####-------------------------------------------------------------------
+            plt.figure(3)
+            plt.subplot(1,2,1)
+            plt.plot(contourData[0][0].flatten(),contourData[2][:,1].flatten())
+            plt.plot(contourData[1].T[0].flatten(),contourData[2][:,1].flatten())
+            plt.xlabel('Parameter value [mm]')
+            plt.ylabel('Output Value')
+            plt.legend(['Parameter A','Parameter B'])
+            
+            plt.subplot(1,2,2)
+            plt.contourf(contourData[0][0],contourData[1].T[0],contourData[2]/contourData[3],levels=50,cmap=cm.Blues)
+            plt.title('Output per unit mass')
+            plt.xlabel('Width [mm]')
+            plt.ylabel('Radius [mm]')
+            plt.colorbar()
+    
+
+# =============================================================================
+#         
+# =============================================================================
+    def sur_function(self,VAR,a,b,c,d):
           """
           Parameters
           ----------
@@ -209,7 +234,7 @@ class ClassFEAAnalysis:
 #     
 # =============================================================================
 if __name__ == "__main__":
-    import sys
+    
     program_path = os.path.dirname(__file__)
     print(program_path)
     if program_path not in sys.path:
@@ -219,11 +244,31 @@ if __name__ == "__main__":
     Analysis = ClassFEAAnalysis()
     
     parameters_subdir = 'parameters'
-    parameters_filename = 'Simulation_A.xlsx'
-    cwd = os.getcwd()
-    parameters_dict = {'filename':parameters_filename,\
-               'filepath':os.path.join(cwd,parameters_subdir),\
-               'path':os.path.join(os.path.join(cwd,parameters_subdir),parameters_filename)}
-        
-    Analysis.process_vtu_data(os.getcwd(),parameters_dict)
+    parameters_filename = 'Simulation_A.xlsx'      
     
+    #Analysis.process_vtu_data(parameters_dict)
+    # Update to automatically change to desired experimental directory
+    if os.path.realpath(program_path) == os.path.realpath(os.getcwd()):
+            os.chdir("./Building Block Study 1")
+            print('Changing working directory')
+    
+    
+    parameters_dict = {'filename':parameters_filename,\
+               'filepath':os.path.join(os.getcwd(),parameters_subdir),\
+               'path':os.path.join(os.path.join(os.getcwd(),parameters_subdir),parameters_filename)}       
+    print(os.getcwd())    
+    print(parameters_dict)
+    importedParams = pd.read_excel(parameters_dict['path'])  
+    
+    meshDict = Analysis.import_vtu_data(parameters_dict,importedParams)
+    
+    # Set endpoints to sample data over a line
+    a = [-.050, .02, 0]
+    b = [ .050, .02, 0]
+    lineOutput = Analysis.extractDatafromLine(meshDict,a,b)
+    
+    ptOutput =  Analysis.extractSpecificPts(lineOutput, [0],'Field Z')
+    
+    npArray,contourData = Analysis.analyzeData(importedParams,ptOutput)
+    
+    Analysis.createSamplePlots(lineOutput,importedParams,contourData)

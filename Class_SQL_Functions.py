@@ -4,8 +4,9 @@ Created on Fri Jun  4 09:36:09 2021
 
 File:Class_SQL_Functions.py
 @author: Ryan Kari <ryan.j.kari@gmail.com>
-Last Modified Date: May 23, 2022
+Last Modified Date: May 23, 2023
 Last Modified by: Ryan Kari
+Description of Changes: Pandas and sql changes resulted in problems
 
 """
 
@@ -14,6 +15,7 @@ from sqlalchemy import create_engine
 import os
 from pathlib import Path
 import pandas as pd
+import collections
 
 #remember to instantiate the class as follows: 
 
@@ -75,11 +77,14 @@ class classSQL:
                     cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
                     tables = cursor.fetchall()
                     
-                    if table in tables:
-                        print("table {} in {} exists. appending".format(table,my_file.name))
-                        table_status = True
+                    if tables != []:
+                        if table in tables[:][0]:
+                            print("table {} in {} exists. appending".format(table,my_file.name))
+                            table_status = True
+                        else:
+                            print("table {} does not exist.".format(table))
+                            table_status = False
                     else:
-                        print("table {} does not exist.".format(table))
                         table_status = False
                     
                 else:
@@ -108,13 +113,13 @@ class classSQL:
 #      Write to SQL Table  
 # =============================================================================
      
-        def write_to_master_table(self,dfInput,db_dict):
+        def write_to_master_table(self,dfActive,db_dict):
             table = db_dict['table']
             filename = db_dict['path']
             table_status = self.file_handling(table,filename)
 
-            df = dfInput.to_frame().T
-            
+            df = dfActive.copy()
+            df = pd.DataFrame(dfActive).T
             
             if 'file_id' in df:
                 print('file_id location as {}\n'.format(df['file_id']))
@@ -131,40 +136,42 @@ class classSQL:
                     print('Dropping Output Dir')
                     df = df.drop(columns = 'Output Dir')
                     
-                if df.columns.is_unique == False:
+                
+                if df.index.is_unique == False:
                     print("Columns in df not unique. Forcing to be unique.")
-                    df = df.loc[:,~df.columns.duplicated()]    
-                    
+                    df = df.groupby(df.index).first()
+                    df = df.squeeze()
                 try:
-                    print("Writing to dB at {} \ntable = {}\n".\
+                    print("Writing to dB at \n{} \ntable = {}\n".\
                           format(filename,table))
                         
                     conn = sql.connect(filename)
                     
-                    df2 = df.astype('str')
                     if table_status == True:
-                        
+                        print('Table Exists. Writing to table')
                         cursor = conn.execute('select * from {}'.format(table))
                         colnames = cursor.description
+                        #Remove non from the received table
+                        removeNone = [tuple(xi for xi in x if xi is not None) for x in colnames]
                         rowArray = []
-                        for row in colnames:
+                        for row in removeNone:
                             rowArray.append(row[0])
                             
-                        import collections
-                        if collections.Counter(rowArray) == collections.Counter(df.index):
-                            print("Data and SQL have same columns")
-                            df2.to_sql(table,conn,if_exists='append')
-
-                        else:
+                        # Check if columns in database versus new columns match
+                        if collections.Counter(rowArray[1:]) != collections.Counter(df.columns):
                             print("Data and SQL do not have same columns. Best to create new table\n")
-                            print("Closing connection\n\n")
-
+                            print("Difference is: \n",collections.Counter(rowArray[1:]) - collections.Counter(df.columns))
                         
+                        else:    
+                            print("Data and SQL have same columns")
+                            df.to_sql(table,conn,if_exists='append')
+                            
+         
                     else:
-                   
-                        df2.to_sql(table,conn,if_exists='append')
-                    
-                    
+                        print("Table does not exist. Need to create.")
+                        df.to_sql(table,conn,if_exists='append')
+                        print("Created table ",table)
+                    print("Closing connection\n\n")
                     conn.close()
                     
                 except:
@@ -184,3 +191,7 @@ class classSQL:
             engine = create_engine(sqlConfig['databaselocation'], echo=False)          
             output = engine.execute("SELECT * FROM file_list_name").fetchall()
             print(output)
+            
+# =============================================================================
+#         
+# =============================================================================
