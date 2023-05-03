@@ -164,8 +164,11 @@ lineOutput = Analysis.extractDatafromLine(meshDict,a,b)
 
 ptOutput =  Analysis.extractSpecificPts(lineOutput, [0],'Field Z')
 
-Analysis.createSamplePlots(ptOutput,lineOutput,importedParams)
-    
 with pd.ExcelWriter(analysis_dict['path']) as writer:
     ptOutput.to_excel(writer,sheet_name = 'pointData')
     lineOutput.to_excel(writer,sheet_name = 'lineData')
+    
+npArray,contourData = Analysis.analyzeData(importedParams, ptOutput)
+
+Analysis.createSamplePlots(lineOutput,importedParams,contourData)
+    
