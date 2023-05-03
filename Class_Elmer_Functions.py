@@ -174,9 +174,18 @@ class ClassElmer:
             
             logPath= os.path.join(cwd,'log')
             
+            # The following appends " around path names
+            cmdstring = []
+            for string in cmd:
+                if os.path.isfile(string):
+                    cmdstring.append(chr(34) + string + chr(34))
+                else:
+                    cmdstring.append(string)
+                    
             # Make a file with the direct command to be executed for command prompt (for debugging)
             with open(os.path.join(logPath,'direct_cmd.txt'),'w') as handle:
-                string = ' '.join([str(item) for item in cmd])
+                string = ' '.join([str(item) for item in cmdstring])
+                handle.write('Copy to command window\n')
                 handle.write(str(string))
                 
             output = self.Execute_CMD(cmd)
@@ -211,11 +220,11 @@ class ClassElmer:
             if not math.isnan(body_id['concentratorBody']['volume']):
                 Variable_Info[4] = '$ concentratorBody = {}\n'.format(body_id['concentratorBody']['volume'])
             else:
-                Variable_Info[4] = ''
+                Variable_Info[4] = '\n'
             with open(os.path.join(cwd,"case_automate.sif"),'w') as f:
                 for value in Variable_Info:
                     f.write(value)
-                
+                    print('value')
             
 
     # =============================================================================
